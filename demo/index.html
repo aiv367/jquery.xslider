@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<title>xSlider Demo</title>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="../jquery.xslider.css">
+
+<script src="libs/jquery/jquery.js"></script>
+<script src="../jquery.xslider.js"></script>
+
+<link rel="stylesheet" href="libs/highlight/styles/default.css">
+<script src="libs/highlight/highlight.pack.js"></script>
+
+</head>
+<body>
+
+	<div class="container">
+
+		<h1>XSlider</h1>
+
+		<div class="group">
+
+			<h1>说明：</h1>
+			<p>这是一个jQuery滑块插件</p>
+			<ul>
+				<li>实现了类似 &lt;input type=&quot;range&quot; /&gt; 功能，并且在此基础上增加了垂直显示方式。</li>
+				<li>对桌面端、移动端、桌面移动混合模式(surface笔记本)提供了良好的支持。</li>
+			</ul>
+
+		</div>
+
+		<div class="group">
+
+			<h1>更新：</h1>
+			<div class="group">
+				<h2>[2019/04/20] version: 1.0</h2>
+				<ul>
+					<li>发布</li>
+				</ul>
+			</div>
+
+		</div>
+			
+		<div class="group">
+
+			<h1>例子：</h1>
+
+			<!-- demo1 -->
+			<div class="group">
+				<h2>1.基本示例</h2>
+				<div id="demo1" style="height: 30px; margin-bottom: 10px;"></div>
+<pre><code class="javascript">$('#demo1').XSlider({
+	min:0,
+	max:10,
+	value:5
+});
+
+//或者
+new XSlider({
+	el: '#demo1-1a',
+	min:0,
+	max:10,
+	value:5
+});
+</code></pre>
+					
+
+
+			</div>
+
+			<!-- demo2 -->
+			<div class="group">
+				<h2>2.垂直显示示例</h2>
+				<p>设置 direction 为 vertical 就是垂直显示模式</p>
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 100px;">
+							<div id="demo2" style="height: 130px; width: 30px; margin: 0 auto;"></div>
+						</td>
+						<td>
+<pre><code class="javascript">$('#demo2').XSlider({
+	min:0,
+	max:10,
+	value:5,
+	direction: 'vertical', //horizontal|vertical
+});</code></pre>
+						</td>
+					</tr>
+				</table>
+			</div>
+
+			<!-- demo3 -->
+			<div class="group">
+				<h2>3.支持设置小数步长示例</h2>
+				<p>设置 step 属性为小数，就变成小数步长</p>
+				<div id="demo3" style="height: 30px;"></div>
+<pre><code class="javascript">$('#demo3').XSlider({
+	min:0,
+	max:10,
+	value:5,
+	step:0.5,
+	onChange(val){
+		console.log(val);
+	}
+});</code></pre>
+
+			</div>
+
+			<!-- demo4 -->
+			<div class="group">
+				<h2>4.提示框设置示例</h2>
+				<p>支持设置提示框的方向、模板、偏移量</p>
+				<div id="demo4" style="height: 30px;"></div>
+<pre><code class="javascript">$('#demo4').XSlider({
+	min:0,
+	max:10,
+	value:5,
+	tooltip: true, //是否显示tooltip, 默认true显示
+	tooltipOffset: 15, //提示框偏移量
+	tooltipDirection: 'bottom', //可选值 top|right|bottom|left 水平滚动条默认top，垂直滚动条默认right
+	tooltipFormat: function(val){
+		return 'Val: &lt;span style=&quot;color:red&quot;&gt;' + val + '&lt;/span&gt;';
+	}
+});</code></pre>
+
+			</div>
+
+			<!-- demo5 -->
+			<div class="group">
+				<h2>5.滑块设置示例</h2>
+				<p>滑块设置包括：对拖拽滑块大小的设置、是否自动滚动到位置的设置</p>
+				<div id="demo5-1" style="height: 30px;"></div>
+<pre><code class="javascript">$('#demo5-1').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	handleAutoSize: true, //自动计算滑块大小
+	autoScroll: true, //是否自动滚动到位置
+	autoScrollDelayTime: 800, //自动滚动延迟时间，默认250ms
+});</code></pre>
+
+			<br>
+			<div id="demo5-2" style="height: 30px;"></div>
+<pre><code class="javascript">$('#demo5-2').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	handleAutoSize: false, //自动计算滑块大小
+	autoScroll: false, //是否自动滚动到位置
+});</code></pre>
+
+			</div>
+
+			<!-- demo6 UI-->
+			<div class="group">
+				<h2>6.用户样式设置</h2>
+				<p>通过设置 className 属性，给插件设置用户样式。目前插件中默有 mobile 移动端样式。</p>
+				<div id="demo6-1" style="height: 40px; margin: 20px 0;"></div>
+<pre><code class="javascript">$('#demo6-1').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	className: 'mobile',
+	handleAutoSize: true
+});</code></pre>
+				<br>
+				<div id="demo6-2" style="height: 40px; margin: 20px 0;"></div>
+<pre><code class="javascript">$('#demo6-2').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	className: 'mobile',
+	handleAutoSize: false
+});</code></pre>
+	
+			</div>
+
+			<!-- demo7 获取、设置值-->
+			<div class="group">
+					<h2>7.获取、设置值</h2>
+					<p>通过设置 className 属性，给插件设置用户样式。目前插件中默有 mobile 移动端样式。</p>
+					<div id="demo7" style="height: 40px; margin: 20px 0;"></div>
+					<button onclick="slider7.setOptions({value: 2})">设置 value: 2</button>
+					<button onclick="slider7.setOptions({handleAutoSize: true})">设置 handleAutoSize: true</button>
+					<button onclick="alert(slider7.getValue())">获得value</button>
+	<pre><code class="javascript">let slider7 = $('#demo7').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	className: 'mobile',
+	handleAutoSize: false
+});
+
+slider7.setOptions({value: 2}); //设置 value: 2
+slider7.setOptions({handleAutoSize: true}); //设置 handleAutoSize: true
+slider7.getValue(); //获得value
+</code></pre>
+
+		
+				</div>
+			
+
+
+
+
+
+
+
+
+
+
+
+
+		
+
+	</div>
+
+
+
+<script>
+$('#demo1').XSlider({
+	min:0,
+	max:10,
+	value:5
+});
+
+$('#demo2').XSlider({
+	min:0,
+	max:10,
+	value:5,
+	direction: 'vertical'
+});
+
+$('#demo3').XSlider({
+	min:0,
+	max:10,
+	value:5,
+	step:0.5,
+	onChange(val){
+		console.log(val);
+	}
+});
+
+$('#demo4').XSlider({
+	min:0,
+	max:10,
+	value:5,
+	tooltip: true, //是否显示tooltip, 默认true 显示
+	tooltipOffset: 15, //提示框偏移量
+	tooltipDirection: 'bottom', //可选值 top|right|bottom|left 水平滚动条默认top，垂直滚动条默认right
+	tooltipFormat: function(val){
+		return 'Val: <span style="color:red">' + val + '</span>';
+	}
+});
+
+$('#demo5-1').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	handleAutoSize: true, //自动计算滑块大小
+	autoScroll: true, //是否自动滚动到位置
+	autoScrollDelayTime: 800, //自动滚动延迟时间，默认250ms
+});
+
+$('#demo5-2').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	handleAutoSize: false, //自动计算滑块大小
+	autoScroll: false, //是否自动滚动到位置
+});
+
+$('#demo6-1').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	className: 'mobile',
+	handleAutoSize: true
+});
+
+$('#demo6-2').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	className: 'mobile',
+	handleAutoSize: false
+});
+
+let slider7 = $('#demo7').XSlider({
+	min: 1,
+	max: 3,
+	value: 1,
+	className: 'mobile',
+	handleAutoSize: false
+});
+
+
+</script>
+
+
+<script>
+
+	//highlight.js
+	hljs.configure({
+		tabReplace: '    ',
+	});
+
+	hljs.initHighlightingOnLoad();
+
+</script>
+</body>
+</html>
