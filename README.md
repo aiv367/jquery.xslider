@@ -81,8 +81,3 @@ $("#demo").XSlider({
 getValue()|无|Number|得到当前的值
 setValue(val)|(Number) val|无|设置值
 resize()|无|无|重新计算尺寸
-+enable(status)|(Boolean) status|无|启用禁用插件
-+active(status)|(Boolean) status|无|激活不激活插件(可拖拽不可拖拽状态)
-+destory()|无|无|销毁插件
--active()|无|无|激活插件
--deactive()|无|无|不激活插件
