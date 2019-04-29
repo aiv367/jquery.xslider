@@ -1,7 +1,8 @@
 /**
  * XSlide
- * @version 1.0
- * @update 2019/04/08
+ * @version 1.0.0
+ * @update 2019/04/23
+ * https://github.com/aiv367/jquery.xslider
  */
 class XSlider {
 

@@ -2,8 +2,8 @@
 ## 这是一个同时支持水平、垂直显示模式的 [jQuery](http://jquery.com) 滑块插件。
 它是基于 input range 的功能原型进行开发，主要用作数值的输入功能。 另外它也可以应用到如：分页设置、滚屏、轮播等需求。
  - [Demo: http://plugins.idat.top/jquery.xslider/demo](http://plugins.idat.top/jquery.xslider/demo)
- - [GitHub: http://github.com/aiv367/jquery.xslider](https://github.com/aiv367/jquery.xslider)
- - [作者：aiv367 (大花猫花大)](mailto:aiv367@qq.com)
+ - [GitHub: https://github.com/aiv367/jquery.xslider](https://github.com/aiv367/jquery.xslider)
+ - [Author：aiv367 (大花猫花大)](mailto:aiv367@qq.com)
 
 ## 说明
  - 实现了类似 &lt;input type=&quot;range&quot; /&gt; 功能。
@@ -75,7 +75,7 @@ $("#demo").XSlider({
 
 ## 方法
 
-方法名|参数|返回值|说明
+名称|参数|返回值|说明
 -|-|-|-
 getValue()|无|Number|得到当前的值
 setValue(val)|(Number) val|无|设置值
