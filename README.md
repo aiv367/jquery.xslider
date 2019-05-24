@@ -1,8 +1,8 @@
 # jquery.xslider
 ## 这是一个同时支持水平、垂直显示模式的 [jQuery](http://jquery.com) 滑块插件。
 它是基于 input range 的功能原型进行开发，主要用作数值的输入功能。 另外它也可以应用到如：分页设置、滚屏、轮播等需求。
- - [Demo: http://plugins.idat.top/jquery.xslider/demo](http://plugins.idat.top/jquery.xslider/demo)
  - [GitHub: https://github.com/aiv367/jquery.xslider](https://github.com/aiv367/jquery.xslider)
+ - [Demo: https://aiv367.github.io/jquery.xslider/demo/](https://aiv367.github.io/jquery.xslider/demo/)
  - [Author：aiv367 (大花猫花大)](mailto:aiv367@qq.com)
 
 ## 说明
