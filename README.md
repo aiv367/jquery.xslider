@@ -13,6 +13,9 @@
  - 此插件只在 Chrome, Firefox、部分Android、Window Surface 测试通过。如果你要求IE，那么此插件不适用。
   
 ## 更新
+ - V1.0.1 [2019/05/30]
+	fixed: 修正自动滚动到位置功能的一个BUG
+
  - V1.0.0 [2019/04/23]
 
 

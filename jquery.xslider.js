@@ -1,7 +1,7 @@
 /**
  * XSlide
- * @version 1.0.0
- * @update 2019/04/23
+ * @version 1.0.1
+ * @update 2019/05/30
  * https://github.com/aiv367/jquery.xslider
  */
 class XSlider {
@@ -439,7 +439,7 @@ class XSlider {
 		if(this.opts.handleAutoSize){
 
 			this.$handle.one('webkitTransitionEnd transitionend', evt => {
-			    this._setHandlePositionByValue(this.opts.value);
+				this.opts.autoScroll && this._setHandlePositionByValue(this.opts.value);
 			});
 
 			if(this.opts.direction === 'horizontal'){
