@@ -1,7 +1,7 @@
 /**
  * XSlide
- * @version 1.0.1
- * @update 2019/05/30
+ * @version 1.1.0
+ * @update 2019/06/05
  * https://github.com/aiv367/jquery.xslider
  */
 class XSlider {
@@ -9,65 +9,80 @@ class XSlider {
 	constructor(opts) {
 
 		let that = this;
+
+		//保存实例，防止重复对一个dom实例化
+		let thisInstance = $(opts.el).data('xslider-instance');
+		if(thisInstance){
+			thisInstance.setOptions(opts);
+			return thisInstance;
+		}
+		$(opts.el).data('xslider-instance', this);
+
 		this.opts = $.extend(true, {
-			el: '',
-			min: 1,
-			max: 1,
-			value: 1,
-			step: 1,
-			className: '',				//内置移动端样式 mobile
-			direction: 'horizontal',	//显示方向 horizontal | vertical
-			handleAutoSize: true,		//滑块随着内容自动设置尺寸
-			handleMinSize: 15,			//滑块最小尺寸，仅在 handleAutoSize = true 时有效
-			clickToChange: true,		//单击背景改变range值
-			isActive: true,				//是否激活功能
-			tooltip: true,				//是否显示tooltip
-			tooltipOffset: 3,			//数值提示框偏移量
-			tooltipDirection: '',		//消息框方向 top bottom left right
+			
+			el: '',							// 设置组件实例化dom
+			min: 0,							// 最小值
+			max: 0,							// 最大值
+			value: 0,						// 当前值
+			step: 1,						// 移动步长
+			width: '',						// 宽度，默认自适应 el dom 容器宽度
+			height: '',						// 宽度，默认自适应 el dom 容器高度
+			className: '',					// 用户自定义样式, 内置了一个 mobile 样式
+
+			isVertical: false,				// 是否是垂直
+
+			handleAutoSize: true,			// 滑块尺寸随数据量自动变化
+			handleAutoSizeMin: 10,			// 滑块最小尺寸，仅在 handleAutoSize = true 时有效
+			handleWidth: 10,				// 滑块宽度
+			handleHeight: 10,				// 滑块高度
+			handleWrapperSideStart: 0,		// 滑块容器起始距离
+			handleWrapperSideEnd: 0,		// 滑块容器结束距离
+			bgSideStart: 0,					// 背景容器起始距离
+			bgSideEnd: 0,					// 背景容器结束距离
+
+			clickToChange: true,			// 单击滑道改变值
+
+			tooltip: true,					// 是否显示tooltip
+			tooltipOffset: 3,				// tooltip 显示偏移量
+			tooltipDirection: '',			// tooltip 方向. top bottom left right
+
+			//格式化输出 tooltip
 			tooltipFormat(value){
 				return value.toFixed(that.precision) + '/' + that.opts.max.toFixed(that.precision);
-			},//格式化输出 tooltip
+			},
 
-			autoScroll: true,			//滑块自动滚动到位置
-			autoScrollDelayTime: 250,	//滚动到目标位置后延时xms后滚动到标准位置
+			autoScroll: true,				// 滑块自动滚动到准确位置
+			autoScrollDelayTime: 250,		// 滑块自动滚动时间(ms),仅在 autoScroll = true 时有效
 
-			initRunOnChange: true,		//初始化时执行onChange事件
-			isStopEvent: false,         //是否阻止冒泡，如果和其他插件结合时会用到
-			onDragChange(val, oldVal){},//拖拽过程中的值变化 todo: 需要开发
-			onChange(val, oldVal) {},   //拖拽结束后的值变化
+			initRunOnChange: true,			// 初始化时执行 onChange
+			isStopEvent: false,				// 是否阻止事件冒泡
+
+			onChange(val) {},				// 值变化过程事件回调
+			onChangeEnd(val){},				// 值变化结束事件回调
 
 		}, opts);
 
 		if(this.opts.tooltipDirection === ''){
-			this.opts.tooltipDirection = this.opts.direction === 'horizontal' ? 'top': 'right'
+			this.opts.tooltipDirection = this.opts.isVertical ? 'right': 'top'
 		}
-		
-		this.events = {
-			start: 'touchstart mousedown',
-			move: 'touchmove mousemove',
-			end: 'touchend mouseup',
-			over: 'mouseenter',
-			out: 'mouseleave'
-		};
 
 		this.stepNums = 0;//刻度数量
 		this.precision = 0;//素值精度
 		this.isDrag = false;
+		this.disabled = false;
 
 		this.$bg = undefined;
 		this.$handleWrapper = undefined;
 		this.$handle = undefined;
 		this.$body = $('body');
-		this.$window = $(window);
+		this.$root = $(window);
 
 		this._initElement();
 		this._initEvent();
 		this.setOptions(this.opts);
 
 		//为了在初始化值时，不要动画效果
-		setTimeout(()=>{
-			this.$handle.attr('isdrag', 'false');
-		}, 100);
+		setTimeout(() => this.$handle.attr('data-isdrag', 'false'), 100);
 
 	}
 
@@ -79,7 +94,7 @@ class XSlider {
 			<div class="xslide">
 				<div class="xslide-bg"></div>
 				<div class="xslide-handle-wrapper">
-					<div class="xslide-handle" isdrag="none"></div>
+					<div class="xslide-handle" data-isdrag="none"></div>
 				</div>
 			</div>
 		`);
@@ -97,26 +112,22 @@ class XSlider {
 
 		let that = this;
 
-		this.$window.on('resize', function(){
+		this.$root.on('resize', function(){
 			that.resize();
 		});
 
 		//handle 滑块拖拽
-		this.$handle.on(this.events.start, function(evt){
+		this.$handle.on('touchstart mousedown', function(evt){
 
 			evt.preventDefault();
 
-			if(!that.opts.isActive){
-				return false;
+			if(that.opts.min === that.opts.max || that.disabled){
+				return;
 			}
 
 			let $this = $(this);
-			let dragEvent = evt.touches ? evt.touches[0] : evt;
+			let dragEvent = evt.type === "touchstart" ? evt.touches[0] : evt;
 			let handleOffset = $this.offset();
-
-			if(that.opts.min === that.opts.max){
-				return;
-			}
 
 			//偏移数据
 			let positionStart = {
@@ -125,12 +136,12 @@ class XSlider {
 			};
 
 			//设置当前位拖拽中标记
-			$this.attr('isdrag', 'true');
+			$this.attr('data-isdrag', 'true');
 			that.isDrag = true;
 
 			function drawMove(evt){
 
-				let dragEvent = evt.touches ? evt.touches[0] : evt;
+				let dragEvent = evt.type === "touchmove" ? evt.touches[0] : evt;
 				let position = {
 					left: dragEvent.pageX - positionStart.left - that.$handleWrapper.offset().left,
 					top: dragEvent.pageY - positionStart.top - that.$handleWrapper.offset().top
@@ -140,17 +151,17 @@ class XSlider {
 				if(position.left < 0){
 					position.left = 0;
 				}else if(position.left + $this.width() > that.$handleWrapper.width()){
-					position.left = that.$handleWrapper.width() - $this.width();
+					position.left = that.$handleWrapper.width() - $this.outerWidth();
 				}
 
 				if(position.top < 0){
 					position.top = 0;
 				}else if(position.top + $this.height() > that.$handleWrapper.height()){
-					position.top = that.$handleWrapper.height() - $this.height();
+					position.top = that.$handleWrapper.height() - $this.outerHeight();
 				}
 
 				//设置 handle 位置
-				if(that.opts.direction === 'horizontal'){
+				if(!that.opts.isVertical){
 					$this.css('left', position.left);
 				}else{
 					$this.css('top', position.top);
@@ -169,10 +180,10 @@ class XSlider {
 
 			function drawEnd(evt){
 
-				$this.attr('isdrag', 'false');
+				$this.attr('data-isdrag', 'false');
 				that.isDrag = false;
-				that.$window.off(that.events.move, drawMove);
-				that.$window.off(that.events.end, drawEnd);
+				that.$root.off('touchmove mousemove', drawMove);
+				that.$root.off('touchend mouseup', drawEnd);
 
 				//如果鼠标不再内部，就取消tooltip显示
 				if(that.opts.tooltip) {
@@ -188,12 +199,14 @@ class XSlider {
 					}
 				}
 
+				that.opts.onChangeEnd(that.opts.value);
+
 			}
 
-			that.$window.on(that.events.move, drawMove);
-			that.$window.on(that.events.end, drawEnd);
+			that.$root.on('touchmove mousemove', drawMove);
+			that.$root.on('touchend mouseup', drawEnd);
+
 			if(that.opts.isStopEvent){
-				evt.preventDefault();
 				evt.stopPropagation();
 			}
 
@@ -201,10 +214,10 @@ class XSlider {
 
 		//滑道单击
 		this.$handleWrapper
-			.on(this.events.start, function (evt) {
+			.on('touchstart mousedown', function (evt) {
 
-				if(!that.opts.isActive){
-					return false;
+				if(!that.opts.clickToChange || that.disabled){
+					return;
 				}
 
 				let dragEvent = evt.touches ? evt.touches[0] : evt;
@@ -220,7 +233,7 @@ class XSlider {
 				};
 
 				//检测单击区域是不是在handle范围内，如果范围内，就不继续执行
-				if (that.opts.direction === 'horizontal') {
+				if (!that.opts.isVertical) {
 					if(position.left > handlePosition.left && position.left < handlePosition.left + that.$handle.width()){
 						return;
 					}
@@ -249,29 +262,31 @@ class XSlider {
 				//设置值
 				that.setValue(pointValue, false);
 
-				if (that.opts.direction === 'horizontal') {
+				if (!that.opts.isVertical) {
 					that.$handle.css('left', position.handleLeft);
 				} else {
 					that.$handle.css('top', position.handleTop);
 				}
 
+				that.opts.onChangeEnd(that.opts.value);
+
 			})
-			.on(this.events.over, function (evt) {
+			.on('mouseenter', function (evt) {
 				clearTimeout(that._timer);
 			})
-			.on(this.events.out, function(evt){
+			.on('mouseleave', function(evt){
 
 				//自动滚动到准确位置
 				if(that.opts.autoScroll){
-					if(evt.touches || !that.isDrag){
+					// if(evt.touches || !that.isDrag){
+					if(!that.isDrag){
 						that._handleScrollToValuePosition();
 					}
 				}
 
 			});
 
-
-		//tooltip(PC端专属事件)
+		//tooltip(鼠标专属事件)
 		this.opts.tooltip && this.$handleWrapper
 			.on('mousemove', function (evt) {
 
@@ -283,7 +298,7 @@ class XSlider {
 					top: evt.pageY - that.$handleWrapper.offset().top
 				};
 
-				if(that.opts.direction === 'horizontal'){
+				if(!that.opts.isVertical){
 
 
 					if(evt.pageX >= handlePosition.left && evt.pageX <= handlePosition.left + that.$handle.width()){
@@ -300,6 +315,7 @@ class XSlider {
 						let tooltipPosition = that._getTooltipPositionForHandleWrapper(evt.pageX, evt.pageY);
 						let pointValue = that._getHandleWrapperPointValue(evtPosition.left, evtPosition.top);
 						that._tooltip(true, tooltipPosition.left, tooltipPosition.top, that.opts.tooltipFormat(pointValue));
+
 					}
 
 				}else{
@@ -318,43 +334,74 @@ class XSlider {
 						let tooltipPosition = that._getTooltipPositionForHandleWrapper(evt.pageX, evt.pageY);
 						let pointValue = that._getHandleWrapperPointValue(evtPosition.left, evtPosition.top);
 						that._tooltip(true, tooltipPosition.left, tooltipPosition.top, that.opts.tooltipFormat(pointValue));
+
 					}
 
 				}
 
 			})
 			.on('mouseleave', function (evt) {
-				if(!that.isDrag ){//&& evt.relatedTarget !== that.$tooltip[0]
+
+				//tome: bug it! tooltip 有闪烁问题
+				//tome: 滑道再手机端，单击后，tooltip 不消失
+				if(!that.isDrag && evt.relatedTarget !== that.$tooltip[0]){
 					that._tooltip(false);
 				}
+
 			});
 
 	}
 
 	setOptions(opts){
-		
+
+		//保存数据
 		this.opts = $.extend(true, this.opts, opts);
-		
-		//设置水平，垂直布局样式（标识）
-		opts.direction && this.$wrapper.removeClass('horizontal vertical').addClass(opts.direction);
 
-		//自定义样式
-		opts.className && this.$wrapper.removeClass(this.opts.className).addClass(opts.className);
-
-		//重新设置 handle 的尺寸
-		if(this.opts.handleAutoSize){
-			this._resetHandleSize();
-		}else{
-			this.opts.min == this.opts.max ? this.$handle.css('visibility','hidden') : this.$handle.css('visibility','');
+		//设置方向
+		if(opts.isVertical !== undefined){
+			this.$wrapper.attr('data-direction', opts.isVertical ? 'vertical' : 'horizontal');
 		}
 
-		//重新计算刻度数量
-		// if(opts.min !== undefined || opts.max !== undefined || opts.step !== undefined){
-		this.stepNums = (this.opts.max - this.opts.min) / this.opts.step; //刻度数
-		// }
+		//设置尺寸
+		opts.width && this.$wrapper.width(opts.width);
+		opts.height && this.$wrapper.height(opts.height);
 		
-		if(opts.value !== undefined){
-			this.setValue(opts.value);
+		//自定义样式
+		if(opts.className){
+			this.$wrapper.addClass(opts.className);
+		}
+
+		//设置 handle
+		opts.handleWidth && this.$handle.width(opts.handleWidth);
+		opts.handleHeight && this.$handle.height(opts.handleHeight);
+		((opts.min !== undefined || opts.max !== undefined) && this.opts.min === this.opts.max) ? this.$handle.css('visibility','hidden') : this.$handle.css('visibility','');
+
+		if(opts.handleAutoSize || (this.opts.handleAutoSize && (opts.min || opts.max || opts.step))){
+			this._autoHandleSize();
+			this.opts.autoScroll && this._handleScrollToValuePosition();
+		}
+
+		// 设置 handleWrapper 容器边距
+		if(opts.handleWrapperSideStart !== undefined){
+			!this.opts.isVertical ? this.$handleWrapper.css('left', opts.handleWrapperSideStart) : this.$handleWrapper.css('top', opts.handleWrapperSideStart);
+		}
+
+		if(opts.handleWrapperSideEnd !== undefined){
+			!this.opts.isVertical ? this.$handleWrapper.css('right', opts.handleWrapperSideEnd) : this.$handleWrapper.css('bottom', opts.handleWrapperSideEnd);
+		}
+
+		// 设置 bg 容器边距
+		if(opts.bgSideStart !== undefined){
+			!this.opts.isVertical ? this.$bg.css('left', opts.bgSideStart) : this.$bg.css('top', opts.bgSideStart);
+		}
+
+		if(opts.bgSideEnd !== undefined){
+			!this.opts.isVertical ? this.$bg.css('right', opts.bgSideEnd) : this.$bg.css('bottom', opts.bgSideEnd);
+		}
+
+		//计算刻度数
+		if(opts.min !== undefined || opts.max !== undefined || opts.step !== undefined){
+			this.stepNums = (this.opts.max - this.opts.min) / this.opts.step;
 		}
 
 		//计算小数位长度
@@ -390,6 +437,21 @@ class XSlider {
 
 		}
 
+		//设置值
+		if(opts.value !== undefined){
+
+			if(this.opts.value < this.opts.min){
+				this.opts.value = this.opts.min;
+			}
+
+			if(this.opts.value > this.opts.max){
+				this.opts.value = this.opts.max;
+			}
+
+			this.setValue(this.opts.value);
+
+		}
+
 	}
 
 	setValue(value, toScroll = true){
@@ -404,7 +466,10 @@ class XSlider {
 		}
 
 		this.opts.value = value;
-		!this.isDrag && toScroll && this._setHandlePositionByValue(value);
+
+		if(!this.isDrag && toScroll && (this.opts.autoScroll || this._getHandleValue() !== value)){
+			this._setHandlePositionByValue(value);
+		}
 
 	}
 
@@ -413,51 +478,44 @@ class XSlider {
 	}
 
 	resize(){
-		this._resetHandleSize();
+		
+		this.opts.handleAutoSize && this._autoHandleSize();
 		this._setHandlePositionByValue(this.opts.value);
 	}
-	deactive(){
-		this.$handle.css({'transition': 'none'});
-		this.opts.isActive = false;
 
+	enable(){
+		this.disabled = false;
+		this.$wrapper.attr('data-disabled', 'false');
 	}
-	active(){
 
-		this.$handle.css({'transition': 'transform $xslide-animate-speed linear, all $xslide-animate-speed linear;'});
-		this.opts.isActive = true;
-
+	disable(){
+		this.disabled = true;
+		this.$wrapper.attr('data-disabled', 'true');
 	}
+
 	/**
-	 * 重新计算handle尺寸
+	 * 自动设置 handle 尺寸 
 	 * @DateTime    2018/12/20 9:30
 	 * @Author      wangbing
 	*/
-	_resetHandleSize(){
+	_autoHandleSize(){
 
 		let handleSize;
 
-		if(this.opts.handleAutoSize){
-
-			this.$handle.one('webkitTransitionEnd transitionend', evt => {
-				this.opts.autoScroll && this._setHandlePositionByValue(this.opts.value);
-			});
-
-			if(this.opts.direction === 'horizontal'){
-				handleSize = this.$wrapper.width() / ((this.opts.max - this.opts.min) / this.opts.step + 1);
-			}else{
-				handleSize = this.$wrapper.height() / ((this.opts.max - this.opts.min) / this.opts.step + 1);
-			}
-
-			if(handleSize < this.opts.handleMinSize){
-				handleSize = this.opts.handleMinSize;
-			}
-
-			this.opts.direction == 'horizontal' ? this.$handle.width(handleSize) : this.$handle.height(handleSize);
-
+		if(!this.opts.isVertical){
+			handleSize = this.$wrapper.width() / ((this.opts.max - this.opts.min) / this.opts.step + 1);
 		}else{
+			handleSize = this.$wrapper.height() / ((this.opts.max - this.opts.min) / this.opts.step + 1);
+		}
 
-			this.opts.direction == 'horizontal' ? this.$handle.width() : this.$handle.height();
+		if(handleSize < this.opts.handleAutoSizeMin){
+			handleSize = this.opts.handleAutoSizeMin;
+		}
 
+		if(!this.opts.isVertical){
+			this.$handle.width(handleSize).height(this.opts.handleHeight);
+		}else{
+			this.$handle.width(this.opts.handleWidth).height(handleSize);
 		}
 
 	}
@@ -476,10 +534,40 @@ class XSlider {
 	 * @param		{String}	text	内容
 	*/
 	_tooltip(isShow, pageX = 0, pageY = 0, text = ""){
+
+		let that = this;
+
 		if(isShow){
 
 			if(!this.$tooltip){
-				this.$tooltip = $('<div class="xslide-tooltip '+this.opts.tooltipDirection+'">' + text + '</div>');
+
+				this.$tooltip = $('<div class="xslide-tooltip ' + this.opts.tooltipDirection + '">' + text + '</div>');
+
+				//这个是为了修正鼠标移动到tooltip上时，不流畅滑动问题
+				this.$tooltip
+					.on('mousemove', function(evt){
+
+						let handleWrapperPosition = that.$handleWrapper.offset();
+
+						if(evt.pageX < handleWrapperPosition.left){
+							evt.pageX = handleWrapperPosition.left;
+						}else if(evt.pageX > handleWrapperPosition.left + that.$handleWrapper.width()){
+							evt.pageX = handleWrapperPosition.left + that.$handleWrapper.width();
+						}
+
+						if(evt.pageY < handleWrapperPosition.top){
+							evt.pageY = handleWrapperPosition.top;
+						}else if(evt.pageY > handleWrapperPosition.top + that.$handleWrapper.height()){
+							evt.pageY = handleWrapperPosition.top + that.$handleWrapper.height();
+						}
+
+						that.$handleWrapper.trigger(evt);
+
+					})
+					.on('mouseleave', function(){
+						that.$tooltip.hide();
+					});
+
 				this.$body.append(this.$tooltip);
 			}
 
@@ -507,16 +595,28 @@ class XSlider {
 		let value;
 		let stepPix; //每一个刻度的像素尺寸
 
-		if (this.opts.direction === 'horizontal') {
-			stepPix = (this.$handleWrapper.width() - this.$handle.width()) / this.stepNums;
+		if (!this.opts.isVertical) {
+			stepPix = (this.$handleWrapper.width() - this.$handle.outerWidth()) / this.stepNums;
 			value = parseInt((positionLeft + stepPix/2) / stepPix) * this.opts.step + parseFloat(this.opts.min);
 		} else {
-			stepPix = (this.$handleWrapper.height() - this.$handle.height()) / this.stepNums;
+			stepPix = (this.$handleWrapper.height() - this.$handle.outerHeight()) / this.stepNums;
 			value = parseInt((positionTop + stepPix/2) / stepPix) * this.opts.step + parseFloat(this.opts.min);
 		}
 
 		return this._value(value);
 
+	}
+
+	/**
+	 * 得到 handel 当前位置的对应的 value
+	 */
+	_getHandleValue(){
+		let handlePosition = this.$handle.offset();
+		let handleWrapperPosition = this.$handleWrapper.offset();
+
+		let left = handlePosition.left - handleWrapperPosition.left;
+		let top = handlePosition.top - handleWrapperPosition.top;
+		return this._getHandlePositionValue(left, top);
 	}
 
 	/**
@@ -532,7 +632,7 @@ class XSlider {
 		let value;
 		let stepPix; //每一个刻度的像素尺寸
 
-		if (this.opts.direction === 'horizontal') {
+		if (!this.opts.isVertical) {
 			
 			if(this.stepNums){
 				stepPix = this.$handleWrapper.width() / this.stepNums;
@@ -564,15 +664,12 @@ class XSlider {
 	 */
 	_setHandlePositionByValue(value){
 
-		// if(!this.stepNums){
-		// 	return;
-		// }
 		let stepPix; //每一个刻度的像素尺寸
 		
-		if (this.opts.direction === 'horizontal') {
+		if (!this.opts.isVertical) {
 			
 			if(this.stepNums){
-				stepPix = (this.$handleWrapper.width() - this.$handle.width()) / this.stepNums;
+				stepPix = (this.$handleWrapper.width() - this.$handle.outerWidth()) / this.stepNums;
 				this.$handle.css('left', ((value - this.opts.min) / this.opts.step) * stepPix);
 			}else{
 				this.$handle.css('left', 0);
@@ -582,7 +679,7 @@ class XSlider {
 		} else {
 
 			if(this.stepNums){
-				stepPix = (this.$handleWrapper.height() - this.$handle.height()) / this.stepNums;
+				stepPix = (this.$handleWrapper.height() - this.$handle.outerHeight()) / this.stepNums;
 				this.$handle.css('top', ((value - this.opts.min) / this.opts.step) * stepPix);
 			}else{
 				this.$handle.css('top', 0);
@@ -601,27 +698,27 @@ class XSlider {
 		switch (this.opts.tooltipDirection) {
 			case 'top':
 				position = {
-					left: handleOffset.left + this.$handle.width() / 2,
+					left: handleOffset.left + this.$handle.outerWidth() / 2,
 					top: handleOffset.top - this.opts.tooltipOffset
 				};
 				break;
 
 			case 'bottom':
 				position = {
-					left: handleOffset.left + this.$handle.width() / 2,
-					top: handleOffset.top + this.$handle.height() + this.opts.tooltipOffset
+					left: handleOffset.left + this.$handle.outerWidth() / 2,
+					top: handleOffset.top + this.$handle.outerHeight() + this.opts.tooltipOffset
 				};
 				break;
 			case 'left':
 				position = {
 					left: handleOffset.left - this.opts.tooltipOffset,
-					top: handleOffset.top + this.$handle.height()/2
+					top: handleOffset.top + this.$handle.outerHeight()/2
 				};
 				break;
 			case 'right':
 				position = {
-					left: handleOffset.left + this.$handle.width() + this.opts.tooltipOffset,
-					top: handleOffset.top + this.$handle.height()/2
+					left: handleOffset.left + this.$handle.outerWidth() + this.opts.tooltipOffset,
+					top: handleOffset.top + this.$handle.outerHeight()/2
 				};
 				break;
 		}
@@ -644,7 +741,7 @@ class XSlider {
 			case 'bottom':
 				position = {
 					left: left,
-					top: handleOffset.top + this.$handle.height() + this.opts.tooltipOffset
+					top: handleOffset.top + this.$handle.outerHeight() + this.opts.tooltipOffset
 				};
 				break;
 			case 'left':
@@ -655,7 +752,7 @@ class XSlider {
 				break;
 			case 'right':
 				position = {
-					left: handleOffset.left + this.$handle.width() + this.opts.tooltipOffset,
+					left: handleOffset.left + this.$handle.outerWidth() + this.opts.tooltipOffset,
 					top: top
 				};
 				break;

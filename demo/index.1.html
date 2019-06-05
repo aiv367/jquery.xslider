@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="UTF-8">
+<title>xSlider Demo</title>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="../jquery.xslider.css">
+
+<script src="libs/jquery/jquery.js"></script>
+<script src="../jquery.xslider.js"></script>
+
+<style>
+#demo1{
+	width: 300px;
+	height: 300px;
+	background: #ccc;
+	
+}
+
+.container{
+	position: relative;
+}
+
+#demo2{
+	position: absolute;
+	top: 50px;
+	left: 50px;
+	width: 100px;
+	height: 100px;
+	background: red;
+}
+</style>
+</head>
+<body>
+
+	<div class="container">
+
+		<div class="group">
+			<div id="demo1"></div>
+		</div>
+
+		<button type="button" onclick="slider1.setOptions({min:1, max:100, value: 70})">{min:1, max:100, value: 70}</button>
+		<button type="button" onclick="slider1.setOptions({min:1, max:3, value: 2})">{min:1, max:10, value: 2}</button>
+		<button type="button" onclick="slider1.setOptions({value: 2})">{value: 2}</button>
+		<hr>
+		<button  type="button" onclick="console.log(slider1._getHandleValue());">_getHandleValue</button>
+		<button  type="button" onclick="console.log(slider1.enable());">enabled</button>
+		<button  type="button" onclick="console.log(slider1.disable());">disable</button>
+
+	</div>
+
+
+<script>
+let slider1 = $('#demo1').XSlider({
+	min:1,
+	max:5,
+	value:2,
+	autoScroll: true,
+	handleAutoSize: true,
+	isVertical: false,
+	width: 100,
+	height:200,
+	onChange(val){
+		console.log(val);
+	},
+
+	onChangeEnd(val){
+		console.log('dragend',val);
+	}
+	
+});
+
+</script>
+
+</body>
+</html>

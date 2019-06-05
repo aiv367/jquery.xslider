@@ -3,49 +3,56 @@ $xslide-bg-size: 10px;
 $xslide-handle-size: 10px;
 $xslide-handle-wrapper-padding: 1px;
 $xslide-animate-speed: 0.1s;
-$xslide-tooltip-triangle-size: 5px;//tooltip 三角形大小
+$xslide-tooltip-triangle-size: 5px; //tooltip 三角形大小
 
-.xslide{
+.xslide {
 
 	position: relative;
 	box-sizing: border-box;
 	width: 100%;
 	height: 100%;
 
-	.xslide-bg{
+	.xslide-bg {
 		position: absolute;
 		top: 0;
-		left:0;
-		right:0;
-		bottom:0;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		background-color: #ccc;
 		border-radius: $xslide-radius;
 	}
 
-	.xslide-handle-wrapper{
+	.xslide-handle-wrapper {
 		position: absolute;
 		top: $xslide-handle-wrapper-padding;
-		left:$xslide-handle-wrapper-padding;
+		left: $xslide-handle-wrapper-padding;
 		right: $xslide-handle-wrapper-padding;
 		bottom: $xslide-handle-wrapper-padding;
 
-		.xslide-handle{
+		.xslide-handle {
 			position: absolute;
 			top: 0;
-			left:0;
+			left: 0;
 			width: $xslide-handle-size;
 			height: $xslide-handle-size;
 			background-color: black;
 			border-radius: $xslide-radius;
+			box-sizing: border-box;
 
-			&[isdrag="false"]{
-				transition:transform $xslide-animate-speed linear, all $xslide-animate-speed linear;
+			&[data-isdrag="false"] {
+				transition: left $xslide-animate-speed linear, top $xslide-animate-speed linear;
 			}
 		}
 
 	}
 
-	&.horizontal{
+	&[data-disabled="true"]{
+		.xslide-handle {
+			cursor: not-allowed;
+		}
+	}
+
+	&[data-direction="horizontal"] {
 
 		.xslide-bg {
 			top: 50%;
@@ -53,13 +60,15 @@ $xslide-tooltip-triangle-size: 5px;//tooltip 三角形大小
 			transform: translate(0, -50%);
 		}
 
-		.xslide-handle{
-			top:calc(50% - #{$xslide-handle-size/2});
+		.xslide-handle {
+			top:50%;
+			transform: translate(0, -50%);
 			height: $xslide-handle-size;
+			
 		}
 	}
 
-	&.vertical{
+	&[data-direction="vertical"] {
 
 		.xslide-bg {
 			left: 50%;
@@ -67,15 +76,16 @@ $xslide-tooltip-triangle-size: 5px;//tooltip 三角形大小
 			transform: translate(-50%, 0);
 		}
 
-		.xslide-handle{
-			left: calc(50% - #{$xslide-handle-size/2});
+		.xslide-handle {
+			left: 50%;
+			transform: translate(-50%, 0);
 			width: $xslide-handle-size;
 		}
 	}
 
 }
 
-.xslide-tooltip{
+.xslide-tooltip {
 
 	position: absolute;
 	background: black;
@@ -84,44 +94,48 @@ $xslide-tooltip-triangle-size: 5px;//tooltip 三角形大小
 	padding: 5px 8px;
 	font-size: 10px;
 	white-space: nowrap;
-	box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
 	display: none;
+	cursor: default;
 	z-index: 999;
 
-	&:after{
+	&:after {
 		position: absolute;
 		content: '';
-		width:0;
-		height:0;
+		width: 0;
+		height: 0;
 	}
 
-	&.top{
+	&.top {
 		transform: translate(-50%, calc(-100% - #{$xslide-tooltip-triangle-size}));
-		&:after{
+
+		&:after {
 			left: 50%;
-			border-left:$xslide-tooltip-triangle-size solid transparent;
-			border-right:$xslide-tooltip-triangle-size solid transparent;
-			border-top:$xslide-tooltip-triangle-size solid black;
+			border-left: $xslide-tooltip-triangle-size solid transparent;
+			border-right: $xslide-tooltip-triangle-size solid transparent;
+			border-top: $xslide-tooltip-triangle-size solid black;
 			bottom: -$xslide-tooltip-triangle-size;
 			transform: translate(-50%, 0);
 		}
 	}
 
-	&.bottom{
+	&.bottom {
 		transform: translate(-50%, $xslide-tooltip-triangle-size);
-		&:after{
+
+		&:after {
 			left: 50%;
 			top: -$xslide-tooltip-triangle-size;
-			border-left:$xslide-tooltip-triangle-size solid transparent;
-			border-right:$xslide-tooltip-triangle-size solid transparent;
-			border-bottom:$xslide-tooltip-triangle-size solid black;
+			border-left: $xslide-tooltip-triangle-size solid transparent;
+			border-right: $xslide-tooltip-triangle-size solid transparent;
+			border-bottom: $xslide-tooltip-triangle-size solid black;
 			transform: translate(-50%, 0);
 		}
 	}
 
-	&.right{
+	&.right {
 		transform: translate($xslide-tooltip-triangle-size, -50%);
-		&:after{
+
+		&:after {
 			left: -$xslide-tooltip-triangle-size;
 			top: 50%;
 			border-top: $xslide-tooltip-triangle-size solid transparent;
@@ -131,9 +145,10 @@ $xslide-tooltip-triangle-size: 5px;//tooltip 三角形大小
 		}
 	}
 
-	&.left{
+	&.left {
 		transform: translate(calc(-100% - #{$xslide-tooltip-triangle-size}), -50%);
-		&:after{
+
+		&:after {
 			right: 0;
 			top: 50%;
 			border-top: $xslide-tooltip-triangle-size solid transparent;
@@ -149,44 +164,42 @@ $xslide-tooltip-triangle-size: 5px;//tooltip 三角形大小
 
 //多皮肤
 $xslide-mobile-handle-size: 36px;
-.xslide{
 
-	&.mobile{
-		.xslide-handle{
-			width: $xslide-mobile-handle-size;
-			height: $xslide-mobile-handle-size;
-			border-radius: $xslide-mobile-handle-size;
-			box-shadow: 0 2px 10px rgba(0,0,0,0.8);
-			border:1px solid #5F5F5F;
-		}
+.xslide {
 
-		.xslide-bg{
+	&.mobile {
+
+		.xslide-bg {
 			border-radius: 15px;
-			box-shadow: 0 1px 1px rgba(0,0,0,0.3) inset;
+			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.3) inset;
 		}
 
-		&.horizontal{
-			.xslide-handle{
-				top:calc(50% - #{$xslide-mobile-handle-size}/2);
-			}
+		.xslide-handle-wrapper{
 
-			.xslide-bg{
-				left: 5px;
-				right: 5px;
+			.xslide-handle {
+				width: $xslide-mobile-handle-size;
+				height: $xslide-mobile-handle-size;
+				border-radius: $xslide-mobile-handle-size;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+				border: 1px solid #5F5F5F;
+			}
+		}
+
+		&[data-direction = "horizontal"]{
+			.xslide-bg {
 				height: 16px;
 			}
 		}
 
-		&.vertical{
-			.xslide-handle{
-				left:calc(50% - #{$xslide-mobile-handle-size}/2);
-			}
-
-			.xslide-bg{
-				top: 5px;
-				bottom: 5px;
+		&[data-direction = "vertical"]{
+			.xslide-bg {
+				width: 16px;
 			}
 		}
+
+		
+
+		
 	}
 
 }
