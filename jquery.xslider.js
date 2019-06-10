@@ -1,7 +1,7 @@
 /**
  * XSlide
- * @version 1.1.0
- * @update 2019/06/05
+ * @version 1.1.1
+ * @update 2019/06/10
  * https://github.com/aiv367/jquery.xslider
  */
 class XSlider {
@@ -140,6 +140,10 @@ class XSlider {
 			that.isDrag = true;
 
 			function drawMove(evt){
+
+				if(evt.type === 'mousemove' && evt.which === 0){
+					drawEnd(evt);
+				}
 
 				let dragEvent = evt.type === "touchmove" ? evt.touches[0] : evt;
 				let position = {
