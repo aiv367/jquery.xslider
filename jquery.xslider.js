@@ -1,7 +1,7 @@
 /**
  * XSlide
- * @version 1.1.1
- * @update 2019/06/10
+ * @version 1.1.2
+ * @update 2019/06/14
  * https://github.com/aiv367/jquery.xslider
  */
 class XSlider {
@@ -346,9 +346,8 @@ class XSlider {
 			})
 			.on('mouseleave', function (evt) {
 
-				//tome: bug it! tooltip 有闪烁问题
-				//tome: 滑道再手机端，单击后，tooltip 不消失
-				if(!that.isDrag && evt.relatedTarget !== that.$tooltip[0]){
+				// if(!that.isDrag && evt.relatedTarget !== that.$tooltip[0]){
+				if(!that.isDrag){
 					that._tooltip(false);
 				}
 
@@ -364,6 +363,8 @@ class XSlider {
 		//设置方向
 		if(opts.isVertical !== undefined){
 			this.$wrapper.attr('data-direction', opts.isVertical ? 'vertical' : 'horizontal');
+			this.$bg.attr('style', '');
+			this.$handle.attr('style', '');
 		}
 
 		//设置尺寸
@@ -548,29 +549,29 @@ class XSlider {
 				this.$tooltip = $('<div class="xslide-tooltip ' + this.opts.tooltipDirection + '">' + text + '</div>');
 
 				//这个是为了修正鼠标移动到tooltip上时，不流畅滑动问题
-				this.$tooltip
-					.on('mousemove', function(evt){
+				// this.$tooltip
+				// 	.on('mousemove', function(evt){
 
-						let handleWrapperPosition = that.$handleWrapper.offset();
+				// 		let handleWrapperPosition = that.$handleWrapper.offset();
 
-						if(evt.pageX < handleWrapperPosition.left){
-							evt.pageX = handleWrapperPosition.left;
-						}else if(evt.pageX > handleWrapperPosition.left + that.$handleWrapper.width()){
-							evt.pageX = handleWrapperPosition.left + that.$handleWrapper.width();
-						}
+				// 		if(evt.pageX < handleWrapperPosition.left){
+				// 			evt.pageX = handleWrapperPosition.left;
+				// 		}else if(evt.pageX > handleWrapperPosition.left + that.$handleWrapper.width()){
+				// 			evt.pageX = handleWrapperPosition.left + that.$handleWrapper.width();
+				// 		}
 
-						if(evt.pageY < handleWrapperPosition.top){
-							evt.pageY = handleWrapperPosition.top;
-						}else if(evt.pageY > handleWrapperPosition.top + that.$handleWrapper.height()){
-							evt.pageY = handleWrapperPosition.top + that.$handleWrapper.height();
-						}
+				// 		if(evt.pageY < handleWrapperPosition.top){
+				// 			evt.pageY = handleWrapperPosition.top;
+				// 		}else if(evt.pageY > handleWrapperPosition.top + that.$handleWrapper.height()){
+				// 			evt.pageY = handleWrapperPosition.top + that.$handleWrapper.height();
+				// 		}
 
-						that.$handleWrapper.trigger(evt);
+				// 		that.$handleWrapper.trigger(evt);
 
-					})
-					.on('mouseleave', function(){
-						that.$tooltip.hide();
-					});
+				// 	})
+				// 	.on('mouseleave', function(){
+				// 		that.$tooltip.hide();
+				// 	});
 
 				this.$body.append(this.$tooltip);
 			}
